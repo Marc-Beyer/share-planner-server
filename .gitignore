@@ -19,3 +19,6 @@ hs_err_pid*
 
 # private file with login-data
 application.properties
+
+.idea/
+.gradle/

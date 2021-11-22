@@ -1,10 +1,10 @@
-package com.mam.vpr;
+package com.vpr.server;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class VprApplicationTests {
+class ServerApplicationTests {
 
 	@Test
 	void contextLoads() {
