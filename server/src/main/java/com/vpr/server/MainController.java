@@ -65,8 +65,8 @@ public class MainController {
         return eventRepository.findAll();
     }
 
-    @GetMapping(path="/event-by-userid")
-    public @ResponseBody Iterable<java.sql.Date> getEventByUserId() {
-        return userEventRepository.findAllDates();
+    @GetMapping(path="/test")
+    public @ResponseBody Iterable<Object> getTest() {
+        return eventRepository.test();
     }
 }
