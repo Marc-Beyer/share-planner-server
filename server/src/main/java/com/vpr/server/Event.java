@@ -15,6 +15,7 @@ public class Event {
     private String name;
     private Integer priority;
     private boolean isFullDay;
+    private boolean isPrivate;
     private Time start;
     private Time end;
 
@@ -55,6 +56,14 @@ public class Event {
 
     public void setFullDay(boolean fullDay) {
         isFullDay = fullDay;
+    }
+
+    public boolean isPrivate() {
+        return isPrivate;
+    }
+
+    public void setPrivate(boolean aPrivate) {
+        isPrivate = aPrivate;
     }
 
     public Time getStart() {

@@ -47,26 +47,21 @@ public class MainController {
     // GET-request at /all-users
     // returns JSON-data
     @GetMapping(path="/all-users")
-    public @ResponseBody Iterable<com.vpr.server.User> getAllUsers() {
-        return userRepository.findAll();
+    public @ResponseBody Object[] getAllUsers() {
+        return userRepository.findAllUsernames();
     }
 
-    // POST-request at /users-by-name
+    // POST-request at /all-events
     // returns JSON-data
-    @PostMapping(path="/users-by-name")
-    public @ResponseBody Iterable<com.vpr.server.User> getUsersByName(@RequestParam String name) {
-        return userRepository.findByName(name);
+    @PostMapping(path="/all-events")
+    public @ResponseBody Object[] getAllEvents(@RequestParam long userId) {
+        return eventRepository.findAllVisibleByUserId(userId);
     }
 
     // GET-request at /all-events
     // returns JSON-data
-    @GetMapping(path="/all-events")
-    public @ResponseBody Iterable<com.vpr.server.Event> getAllEvents() {
+    @GetMapping(path="/all-events-test")
+    public @ResponseBody Iterable<com.vpr.server.Event> getAllEventsTest() {
         return eventRepository.findAll();
-    }
-
-    @GetMapping(path="/test")
-    public @ResponseBody Iterable<Object> getTest() {
-        return eventRepository.test();
     }
 }

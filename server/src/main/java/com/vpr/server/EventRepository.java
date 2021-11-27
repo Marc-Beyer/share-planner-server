@@ -14,7 +14,17 @@ public interface EventRepository extends CrudRepository<Event, Integer> {
             "INNER JOIN user_event ue " +
             "ON e.id = ue.event_id " +
             "INNER JOIN user u " +
-            "ON ue.user_id = u.id",
+            "ON ue.user_id = u.id " +
+            "WHERE u.id = ?1 " +
+            "OR e.is_private = 0",
             nativeQuery = true)
-    List<Object> test();
+    Object[] findAllVisibleByUserId(long id);
+
+    @Query(value = "SELECT * " +
+            "FROM event e " +
+            "INNER JOIN user_event ue " +
+            "ON e.id = ue.event_id " +
+            "WHERE ue.user_id = ?1",
+            nativeQuery = true)
+    Object[] findAllByUserId(long id);
 }
