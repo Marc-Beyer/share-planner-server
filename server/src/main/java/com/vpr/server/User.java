@@ -11,10 +11,19 @@ public class User {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private long id;
 
+    @Column(name="name", nullable=false)
     private String name;
+
+    @Column(name="forename", nullable=false)
     private String forename;
+
+    @Column(name="password", nullable=false)
     private String password;
+
+    @Column(name="token")
     private String token;
+
+    @Column(name="is_admin", nullable=false)
     private boolean isAdmin;
 
     @OneToMany(mappedBy = "user")

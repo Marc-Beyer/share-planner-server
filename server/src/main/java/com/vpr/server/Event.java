@@ -12,11 +12,22 @@ public class Event {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private long id;
 
+    @Column(name="name", nullable=false)
     private String name;
+
+    @Column(name="priority", nullable=false)
     private Integer priority;
+
+    @Column(name="is_full_day", nullable=false)
     private boolean isFullDay;
+
+    @Column(name="is_private", nullable=false)
     private boolean isPrivate;
+
+    @Column(name="start")
     private Time start;
+
+    @Column(name="end")
     private Time end;
 
     @OneToMany(mappedBy = "event")
