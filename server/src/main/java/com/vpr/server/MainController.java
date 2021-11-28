@@ -110,6 +110,13 @@ public class MainController {
         return "Saved";
     }
 
+    @PostMapping(path="/del-event")
+    public @ResponseBody String addEvent ( @RequestParam Integer eventId ) {
+        eventRepository.deleteUserEventsById(Long.valueOf(eventId));
+        eventRepository.deleteById(Long.valueOf(eventId));
+        return "Deleted";
+    }
+
     // GET-request at /all-users
     // returns JSON-data
     @GetMapping(path="/all-users")

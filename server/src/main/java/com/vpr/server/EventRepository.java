@@ -1,8 +1,10 @@
 package com.vpr.server;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 // This will be AUTO IMPLEMENTED by Spring into a Bean called eventRepository
@@ -29,4 +31,17 @@ public interface EventRepository extends CrudRepository<Event, Integer> {
             "WHERE ue.user_id = ?1",
             nativeQuery = true)
     Object[] findAllByUserId(long id);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE ue FROM user_event ue WHERE ue.event_id = ?1",
+    nativeQuery = true)
+    void deleteUserEventsById(long id);
+
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE e FROM event e WHERE e.id = ?1",
+            nativeQuery = true)
+    void deleteById(long id);
 }
