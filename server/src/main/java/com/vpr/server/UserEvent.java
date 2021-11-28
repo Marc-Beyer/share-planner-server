@@ -20,6 +20,8 @@ public class UserEvent {
     @JoinColumn(name = "event_id", referencedColumnName = "id")
     private Event event;
 
+    @Id
+    @Column(name="date", columnDefinition = "DATE DEFAULT CURRENT_DATE", nullable = false)
     private Date date;
 
     /*********************
