@@ -58,10 +58,11 @@ public class MainController {
         return eventRepository.findAllVisibleByUserId(userId);
     }
 
-    // GET-request at /all-events
-    // returns JSON-data
+
     @GetMapping(path="/all-events-test")
     public @ResponseBody Iterable<com.vpr.server.Event> getAllEventsTest() {
         return eventRepository.findAll();
     }
+
+
 }

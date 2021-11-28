@@ -9,7 +9,9 @@ import java.util.List;
 // CRUD refers Create, Read, Update, Delete
 
 public interface EventRepository extends CrudRepository<Event, Integer> {
-    @Query(value = "SELECT e.id AS eid, e.name AS ename, u.id AS uid, u.forename, u.name AS uname " +
+    @Query(value = "SELECT e.id AS eid, e.name AS ename, e.start, e.end, e.priority , e.is_full_day, " +
+            "ue.date, " +
+            "u.id AS uid, u.forename, u.name AS uname " +
             "FROM event e " +
             "INNER JOIN user_event ue " +
             "ON e.id = ue.event_id " +
