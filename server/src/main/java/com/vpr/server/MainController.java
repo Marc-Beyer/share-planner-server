@@ -5,6 +5,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
+import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.util.Optional;
 
 @Controller // This means that this class is a Controller
 @RequestMapping(path="/vpr") // This means URL's start with /demo (after Application path)
@@ -41,6 +44,69 @@ public class MainController {
         user.setAdmin(isAdmin.equals("1"));
 
         userRepository.save(user);
+        return "Saved";
+    }
+
+    @PostMapping(path="/add-event")
+    public @ResponseBody String addEvent (
+            @RequestParam Integer userId,
+            @RequestParam String date,
+            @RequestParam String name,
+            @RequestParam String start,
+            @RequestParam String end,
+            @RequestParam Integer prority,
+            @RequestParam Boolean isFullDay,
+            @RequestParam Boolean isPrivate
+    ) {
+
+        com.vpr.server.Event event = new com.vpr.server.Event();
+
+        event.setName(name);
+
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm");
+            long ms = simpleDateFormat.parse(start).getTime();
+            event.setStart(new Time(ms));
+        }catch (Exception e){
+            event.setStart(null);
+        }
+
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm");
+            long ms = simpleDateFormat.parse(end).getTime();
+            event.setEnd(new Time(ms));
+        }catch (Exception e){
+            event.setEnd(null);
+        }
+
+        event.setPriority(prority);
+        event.setFullDay(isFullDay);
+        event.setPrivate(isPrivate);
+
+
+        eventRepository.save(event);
+
+
+        com.vpr.server.UserEvent userEvent = new com.vpr.server.UserEvent();
+
+        try {
+            System.out.println("date " + date);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            userEvent.setDate(new java.sql.Date(simpleDateFormat.parse(date).getTime()));
+        }catch (Exception e){
+            System.out.println("DATE FORMAT NOT CORRECT");
+        }
+
+        userEvent.setEvent(event);
+
+        long uId = Long.valueOf(userId);
+        User user = userRepository.findById(uId);
+        userEvent.setUser(user);
+
+        System.out.println(userEvent);
+        System.out.println(user);
+
+        userEventRepository.save(userEvent);
         return "Saved";
     }
 

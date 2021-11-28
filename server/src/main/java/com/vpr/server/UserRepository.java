@@ -15,4 +15,5 @@ public interface UserRepository extends CrudRepository<User, Integer> {
             nativeQuery = true)
     Object[] findAllUsernames();
 
+    com.vpr.server.User findById(long id);
 }
