@@ -16,4 +16,6 @@ public interface UserRepository extends CrudRepository<User, Integer> {
     Object[] findAllUsernames();
 
     com.vpr.server.User findById(long id);
+
+    com.vpr.server.User findByLoginAndPassword(String login, String password);
 }

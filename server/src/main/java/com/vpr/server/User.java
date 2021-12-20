@@ -17,6 +17,9 @@ public class User {
     @Column(name="forename", nullable=false)
     private String forename;
 
+    @Column(name="login", nullable=false)
+    private String login;
+
     @Column(name="password", nullable=false)
     private String password;
 
@@ -55,6 +58,14 @@ public class User {
 
     public void setForename(String forename) {
         this.forename = forename;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getPassword() {

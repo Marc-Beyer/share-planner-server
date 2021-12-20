@@ -1,8 +1,11 @@
 package com.vpr.server;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -10,7 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Optional;
 
 @Controller // This means that this class is a Controller
-@RequestMapping(path="/vpr") // This means URL's start with /demo (after Application path)
+@RequestMapping(path = "/vpr") // This means URL's start with /demo (after Application path)
 public class MainController {
 
     // This means to get the bean called userRepository
@@ -26,13 +29,14 @@ public class MainController {
 
     // POST-request at /add with request parameter
     // @ResponseBody means the returned String is the response, not a view name
-    @PostMapping(path="/add-user")
-    public @ResponseBody String addNewUser (
+    @PostMapping(path = "/add-user")
+    public @ResponseBody
+    String addNewUser(
             @RequestParam String name,
             @RequestParam String forename,
             @RequestParam String password,
             @RequestParam String isAdmin
-            ) {
+    ) {
 
         com.vpr.server.User user = new com.vpr.server.User();
 
@@ -47,8 +51,22 @@ public class MainController {
         return "Saved";
     }
 
-    @PostMapping(path="/add-event")
-    public @ResponseBody String addEvent (
+    @PostMapping(path = "/login")
+    public @ResponseBody
+    String login(
+            @RequestParam String login,
+            @RequestParam String password
+    ) {
+        User user = userRepository.findByLoginAndPassword(login, password);
+        if(user != null){
+            return "" + user.getId();
+        }
+        return "-1";
+    }
+
+    @PostMapping(path = "/add-event")
+    public @ResponseBody
+    ResponseEntity addEvent(
             @RequestParam Integer userId,
             @RequestParam String date,
             @RequestParam String name,
@@ -58,16 +76,23 @@ public class MainController {
             @RequestParam Boolean isFullDay,
             @RequestParam Boolean isPrivate
     ) {
+        String errorString = "";
 
         com.vpr.server.Event event = new com.vpr.server.Event();
 
-        event.setName(name);
+        System.out.println(name.length() + ". name " + name);
+        if (name.length() > 3) {
+            event.setName(name);
+        } else {
+            System.out.println("NAME IST ZU KURZ");
+            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        }
 
         try {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm");
             long ms = simpleDateFormat.parse(start).getTime();
             event.setStart(new Time(ms));
-        }catch (Exception e){
+        } catch (Exception e) {
             event.setStart(null);
         }
 
@@ -75,7 +100,7 @@ public class MainController {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm");
             long ms = simpleDateFormat.parse(end).getTime();
             event.setEnd(new Time(ms));
-        }catch (Exception e){
+        } catch (Exception e) {
             event.setEnd(null);
         }
 
@@ -83,22 +108,17 @@ public class MainController {
         event.setFullDay(isFullDay);
         event.setPrivate(isPrivate);
 
-
-        eventRepository.save(event);
-
-
         com.vpr.server.UserEvent userEvent = new com.vpr.server.UserEvent();
 
         try {
             System.out.println("date " + date);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
             userEvent.setDate(new java.sql.Date(simpleDateFormat.parse(date).getTime()));
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("DATE FORMAT NOT CORRECT");
         }
 
         userEvent.setEvent(event);
-
         long uId = Long.valueOf(userId);
         User user = userRepository.findById(uId);
         userEvent.setUser(user);
@@ -106,12 +126,15 @@ public class MainController {
         System.out.println(userEvent);
         System.out.println(user);
 
+        eventRepository.save(event);
         userEventRepository.save(userEvent);
-        return "Saved";
+
+        return new ResponseEntity(HttpStatus.OK);
     }
 
-    @PostMapping(path="/del-event")
-    public @ResponseBody String addEvent ( @RequestParam Integer eventId ) {
+    @PostMapping(path = "/del-event")
+    public @ResponseBody
+    String addEvent(@RequestParam Integer eventId) {
         eventRepository.deleteUserEventsById(Long.valueOf(eventId));
         eventRepository.deleteById(Long.valueOf(eventId));
         return "Deleted";
@@ -119,21 +142,24 @@ public class MainController {
 
     // GET-request at /all-users
     // returns JSON-data
-    @GetMapping(path="/all-users")
-    public @ResponseBody Object[] getAllUsers() {
+    @GetMapping(path = "/all-users")
+    public @ResponseBody
+    Object[] getAllUsers() {
         return userRepository.findAllUsernames();
     }
 
     // POST-request at /all-events
     // returns JSON-data
-    @PostMapping(path="/all-events")
-    public @ResponseBody Object[] getAllEvents(@RequestParam long userId) {
+    @PostMapping(path = "/all-events")
+    public @ResponseBody
+    Object[] getAllEvents(@RequestParam long userId) {
         return eventRepository.findAllVisibleByUserId(userId);
     }
 
 
-    @GetMapping(path="/all-events-test")
-    public @ResponseBody Iterable<com.vpr.server.Event> getAllEventsTest() {
+    @GetMapping(path = "/all-events-test")
+    public @ResponseBody
+    Iterable<com.vpr.server.Event> getAllEventsTest() {
         return eventRepository.findAll();
     }
 
