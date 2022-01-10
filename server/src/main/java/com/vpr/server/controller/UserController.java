@@ -63,6 +63,7 @@ public class UserController {
             @RequestParam String login,
             @RequestParam String password
     ) {
+        System.out.println("LOGIN");
         User user = userRepository.findByLogin(login);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Falscher login");
