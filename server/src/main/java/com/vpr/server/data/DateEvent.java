@@ -1,4 +1,4 @@
-package com.vpr.server;
+package com.vpr.server.data;
 
 import java.sql.Date;
 import java.sql.Time;

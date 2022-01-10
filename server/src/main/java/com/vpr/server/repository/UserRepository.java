@@ -1,13 +1,11 @@
-package com.vpr.server;
+package com.vpr.server.repository;
 
+import com.vpr.server.data.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import java.util.List;
-
 // This will be AUTO IMPLEMENTED by Spring into a Bean called userRepository
 // CRUD refers Create, Read, Update, Delete
-
 public interface UserRepository extends CrudRepository<User, Integer> {
 
     @Query(value = "SELECT u.id, u.name, u.forename " +
@@ -15,7 +13,11 @@ public interface UserRepository extends CrudRepository<User, Integer> {
             nativeQuery = true)
     Object[] findAllUsernames();
 
-    com.vpr.server.User findById(long id);
+    User findById(long id);
 
-    com.vpr.server.User findByLoginAndPassword(String login, String password);
+    User findByLogin(String login);
+
+    User findByLoginAndPassword(String login, byte[] password);
+
+    void deleteById(long id);
 }

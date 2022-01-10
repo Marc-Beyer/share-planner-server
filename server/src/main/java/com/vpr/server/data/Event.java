@@ -1,4 +1,4 @@
-package com.vpr.server;
+package com.vpr.server.data;
 
 import javax.persistence.*;
 import java.sql.Time;

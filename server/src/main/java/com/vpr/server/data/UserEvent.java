@@ -1,8 +1,7 @@
-package com.vpr.server;
+package com.vpr.server.data;
 
 import javax.persistence.*;
 import java.sql.Date;
-import java.util.List;
 
 // @Entity creates a table out of this class with Hibernate
 // @Table defines the table-name

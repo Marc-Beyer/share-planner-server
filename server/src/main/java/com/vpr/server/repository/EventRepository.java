@@ -1,11 +1,11 @@
-package com.vpr.server;
+package com.vpr.server.repository;
 
+import com.vpr.server.data.Event;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import javax.transaction.Transactional;
-import java.util.List;
 
 // This will be AUTO IMPLEMENTED by Spring into a Bean called eventRepository
 // CRUD refers Create, Read, Update, Delete

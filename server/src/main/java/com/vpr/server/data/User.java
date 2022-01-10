@@ -1,4 +1,4 @@
-package com.vpr.server;
+package com.vpr.server.data;
 
 import javax.persistence.*;
 import java.util.List;
@@ -21,7 +21,10 @@ public class User {
     private String login;
 
     @Column(name="password", nullable=false)
-    private String password;
+    private byte[] password;
+
+    @Column(name="salt", nullable=false)
+    private byte[] salt;
 
     @Column(name="token")
     private String token;
@@ -68,12 +71,20 @@ public class User {
         this.login = login;
     }
 
-    public String getPassword() {
+    public byte[] getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(byte[] password) {
         this.password = password;
+    }
+
+    public byte[] getSalt() {
+        return salt;
+    }
+
+    public void setSalt(byte[] salt) {
+        this.salt = salt;
     }
 
     public String getToken() {

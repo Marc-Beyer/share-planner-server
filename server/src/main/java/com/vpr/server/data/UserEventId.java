@@ -1,4 +1,4 @@
-package com.vpr.server;
+package com.vpr.server.data;
 
 import java.io.Serializable;
 import java.sql.Date;
