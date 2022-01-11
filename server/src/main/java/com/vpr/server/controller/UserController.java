@@ -31,7 +31,7 @@ public class UserController {
             @RequestParam String forename,
             @RequestParam String login,
             @RequestParam String password,
-            @RequestParam String isAdmin
+            @RequestParam Boolean isAdmin
     ) {
         byte[] salt = Hasher.GenerateSalt();
         byte[] hash;
@@ -50,8 +50,8 @@ public class UserController {
         user.setLogin(login);
         user.setPassword(hash);
         user.setSalt(salt);
-        user.setToken("test");
-        user.setAdmin(isAdmin.equals("1"));
+        user.setToken("");
+        user.setAdmin(isAdmin);
 
         userRepository.save(user);
         return "" + user.getId();
@@ -63,9 +63,10 @@ public class UserController {
             @RequestParam String login,
             @RequestParam String password
     ) {
-        System.out.println("LOGIN");
+        System.out.println(login + " tries to login.");
         User user = userRepository.findByLogin(login);
         if (user == null) {
+            System.out.println("Login for " + login + " failed.");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Falscher login");
         }
 
