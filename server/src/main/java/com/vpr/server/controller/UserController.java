@@ -33,6 +33,10 @@ public class UserController {
             @RequestParam String password,
             @RequestParam Boolean isAdmin
     ) {
+        if(userRepository.findByLogin(login) != null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login exestiert bereits!");
+        }
+
         byte[] salt = Hasher.GenerateSalt();
         byte[] hash;
         try {
@@ -44,7 +48,6 @@ public class UserController {
 
         User user = new User();
 
-        // TODO set correct token and password
         user.setName(name);
         user.setForename(forename);
         user.setLogin(login);
@@ -80,10 +83,14 @@ public class UserController {
         }
 
         if (Arrays.equals(user.getPassword(), hash)) {
+            String token = Token.Generate(user.getLogin());
+            user.setToken(token);
+            userRepository.save(user);
+
             System.out.println(user.getLogin() + " is now logged in.");
-            System.out.println(Token.Generate(user.getLogin()));
             System.out.println(Token.Verify(Token.Generate(user.getLogin()), user.getLogin()));
-            return "" + user.getId();
+
+            return token + " " + user.getId();
         }
         System.out.println(user.getLogin() + " failed to logged in.");
         System.out.println("entered : " + javax.xml.bind.DatatypeConverter.printHexBinary(hash));
