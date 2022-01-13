@@ -102,7 +102,7 @@ public class EventController {
 
     @PostMapping(path = "/del")
     public @ResponseBody
-    String addEvent(@RequestParam Integer eventId) {
+    String delEvent(@RequestParam Integer eventId) {
         eventRepository.deleteUserEventsById(Long.valueOf(eventId));
         eventRepository.deleteById(Long.valueOf(eventId));
         return "Deleted";
@@ -114,4 +114,18 @@ public class EventController {
         return eventRepository.findAllVisibleByUserId(userId);
     }
 
+    @PostMapping(path = "/edit")
+    public @ResponseBody
+    String editEvent(
+            @RequestParam Integer userId,
+            @RequestParam String date,
+            @RequestParam String name,
+            @RequestParam String start,
+            @RequestParam String end,
+            @RequestParam Integer prority,
+            @RequestParam Boolean isFullDay,
+            @RequestParam Boolean isPrivate
+    ) {
+        return "";
+    }
 }
