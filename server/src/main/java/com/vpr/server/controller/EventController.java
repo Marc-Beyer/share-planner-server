@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Time;
@@ -103,7 +100,15 @@ public class EventController {
 
     @PostMapping(path = "/del")
     public @ResponseBody
-    ResponseEntity<String> delEvent(@RequestParam Integer eventId) {
+    ResponseEntity<String> delEvent(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam Integer eventId
+    ) {
+        User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
+        if(authUser == null || authUser.isAdmin()){
+            return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
+        }
+
         eventRepository.deleteUserEventsById(Long.valueOf(eventId));
         eventRepository.deleteById(Long.valueOf(eventId));
         return new ResponseEntity<>("", HttpStatus.OK);
