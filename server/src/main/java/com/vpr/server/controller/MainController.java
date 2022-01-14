@@ -33,4 +33,10 @@ public class MainController {
     public String statusTest(){
         throw new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT, "TestTestTest");
     }
+
+    @PostMapping(path = "/header-test")
+    public ResponseEntity<String> headerTest(@RequestHeader("Authorization") String authorizationHeader){
+        System.out.println("authorizationHeader: " + authorizationHeader);
+        return new ResponseEntity<>(authorizationHeader, HttpStatus.OK);
+    }
 }

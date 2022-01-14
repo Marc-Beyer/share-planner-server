@@ -6,6 +6,7 @@ import com.vpr.server.security.Hasher;
 import com.vpr.server.security.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,15 +27,21 @@ public class UserController {
 
     @PostMapping(path = "/add")
     public @ResponseBody
-    String addNewUser(
+    ResponseEntity<String> addNewUser(
+            @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam String name,
             @RequestParam String forename,
             @RequestParam String login,
             @RequestParam String password,
             @RequestParam Boolean isAdmin
     ) {
+        User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
+        if(authUser == null || authUser.isAdmin()){
+            return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
+        }
+
         if(userRepository.findByLogin(login) != null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login exestiert bereits!");
+            return new ResponseEntity<>( "Login exestiert bereits", HttpStatus.BAD_REQUEST);
         }
 
         byte[] salt = Hasher.GenerateSalt();
@@ -43,7 +50,7 @@ public class UserController {
             hash = Hasher.HashPassword(password, salt);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Fehler beim hashen");
+            return new ResponseEntity<>( "Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         User user = new User();
@@ -57,12 +64,12 @@ public class UserController {
         user.setAdmin(isAdmin);
 
         userRepository.save(user);
-        return "" + user.getId();
+        return new ResponseEntity<>( "" + user.getId(), HttpStatus.OK);
     }
 
     @PostMapping(path = "/login")
     public @ResponseBody
-    String login(
+    ResponseEntity<String> login(
             @RequestParam String login,
             @RequestParam String password
     ) {
@@ -70,7 +77,7 @@ public class UserController {
         User user = userRepository.findByLogin(login);
         if (user == null) {
             System.out.println("Login for " + login + " failed.");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Falscher login");
+            return new ResponseEntity<>( "Falscher login", HttpStatus.UNAUTHORIZED);
         }
 
         byte[] salt = user.getSalt();
@@ -79,7 +86,7 @@ public class UserController {
             hash = Hasher.HashPassword(password, salt);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Fehler beim hashen");
+            return new ResponseEntity<>( "Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if (Arrays.equals(user.getPassword(), hash)) {
@@ -90,19 +97,26 @@ public class UserController {
             System.out.println(user.getLogin() + " is now logged in.");
             System.out.println(Token.Verify(Token.Generate(user.getLogin()), user.getLogin()));
 
-            return token + " " + user.getId();
+            return new ResponseEntity<>( token + " " + user.getId(), HttpStatus.OK);
         }
         System.out.println(user.getLogin() + " failed to logged in.");
         System.out.println("entered : " + javax.xml.bind.DatatypeConverter.printHexBinary(hash));
         System.out.println("required: " + javax.xml.bind.DatatypeConverter.printHexBinary(user.getPassword()));
 
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Falscher login");
+        return new ResponseEntity<>( "Falscher login", HttpStatus.UNAUTHORIZED);
     }
 
     @PostMapping(path = "/del")
-    public @ResponseBody String deleteUser(@RequestParam Integer userId) {
+    public @ResponseBody ResponseEntity<String> deleteUser(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam Integer userId
+    ) {
+        User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
+        if(authUser == null || authUser.isAdmin()){
+            return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
+        }
         userRepository.deleteById(Long.valueOf(userId));
-        return "Deleted";
+        return new ResponseEntity<>( "", HttpStatus.OK);
     }
 
     /*****************

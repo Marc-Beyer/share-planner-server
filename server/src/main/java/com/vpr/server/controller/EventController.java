@@ -8,6 +8,7 @@ import com.vpr.server.repository.UserEventRepository;
 import com.vpr.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +35,7 @@ public class EventController {
 
     @PostMapping(path = "/add")
     public @ResponseBody
-    String addEvent(
+    ResponseEntity<String> addEvent(
             @RequestParam Integer userId,
             @RequestParam String date,
             @RequestParam String name,
@@ -53,7 +54,7 @@ public class EventController {
             event.setName(name);
         } else {
             System.out.println("NAME IST ZU KURZ");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Format nicht korrekt");
+            return new ResponseEntity<>("Der Name ist zu kurz", HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -84,7 +85,7 @@ public class EventController {
             userEvent.setDate(new java.sql.Date(simpleDateFormat.parse(date).getTime()));
         } catch (Exception e) {
             System.out.println("DATE FORMAT NOT CORRECT");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Format nicht korrekt");
+            return new ResponseEntity<>("Datumformat nicht korrekt", HttpStatus.BAD_REQUEST);
         }
 
         userEvent.setEvent(event);
@@ -97,15 +98,15 @@ public class EventController {
 
         eventRepository.save(event);
         userEventRepository.save(userEvent);
-        return "";
+        return new ResponseEntity<>("", HttpStatus.OK);
     }
 
     @PostMapping(path = "/del")
     public @ResponseBody
-    String delEvent(@RequestParam Integer eventId) {
+    ResponseEntity<String> delEvent(@RequestParam Integer eventId) {
         eventRepository.deleteUserEventsById(Long.valueOf(eventId));
         eventRepository.deleteById(Long.valueOf(eventId));
-        return "Deleted";
+        return new ResponseEntity<>("", HttpStatus.OK);
     }
 
     @PostMapping(path = "/all")

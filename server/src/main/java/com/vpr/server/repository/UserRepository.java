@@ -20,4 +20,6 @@ public interface UserRepository extends CrudRepository<User, Integer> {
     User findByLoginAndPassword(String login, byte[] password);
 
     void deleteById(long id);
+
+    User findByToken(String token);
 }
