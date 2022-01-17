@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.util.Optional;
 
 @Controller
 @RequestMapping(path = "/event")
@@ -108,6 +109,13 @@ public class EventController {
         if(authUser == null || authUser.isAdmin()){
             return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
         }
+
+        Optional<Event> event = eventRepository.findById(eventId);
+
+        if (event.isEmpty()){
+            return new ResponseEntity<>( "Der Termin exestiert nicht", HttpStatus.BAD_REQUEST);
+        }
+
 
         eventRepository.deleteUserEventsById(Long.valueOf(eventId));
         eventRepository.deleteById(Long.valueOf(eventId));
