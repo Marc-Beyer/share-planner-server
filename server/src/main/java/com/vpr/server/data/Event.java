@@ -4,30 +4,53 @@ import javax.persistence.*;
 import java.sql.Time;
 import java.util.List;
 
-// @Entity creates a table out of this class with Hibernate
-@Entity(name = "Event")
+@NamedNativeQuery(name = "Event.findEventsInDateRange",
+    query = "SELECT e.id as id, e.name as name, e.priority as priority, e.is_full_day as isFullDay, " +
+            "is_private as isPrivate, e.start as start, e.end as end " +
+            "FROM event e " +
+            "INNER JOIN user_event ue " +
+            "ON e.id = ue.event_id " +
+            "WHERE (ue.user_id = :userId OR e.is_private = 0) " +
+            "AND ue.date > :startDate " +
+            "AND ue.date < :endDate",
+    resultSetMapping = "Mapping.Event"
+)
+@SqlResultSetMapping(name = "Mapping.Event",
+    classes = @ConstructorResult(targetClass = Event.class,
+        columns = {
+            @ColumnResult(name = "id"),
+            @ColumnResult(name = "name"),
+            @ColumnResult(name = "priority"),
+            @ColumnResult(name = "isFullDay"),
+            @ColumnResult(name = "isPrivate"),
+            @ColumnResult(name = "start"),
+            @ColumnResult(name = "end")
+        }
+    )
+)
+@Entity(name = "Event") // @Entity creates a table out of this class with Hibernate
 public class Event {
     // Generate the primary key
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name="name", nullable=false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name="priority", nullable=false)
+    @Column(name = "priority", nullable = false)
     private Integer priority;
 
-    @Column(name="is_full_day", nullable=false)
+    @Column(name = "is_full_day", nullable = false)
     private boolean isFullDay;
 
-    @Column(name="is_private", nullable=false)
+    @Column(name = "is_private", nullable = false)
     private boolean isPrivate;
 
-    @Column(name="start")
+    @Column(name = "start")
     private Time start;
 
-    @Column(name="end")
+    @Column(name = "end")
     private Time end;
 
     @OneToMany(mappedBy = "event")

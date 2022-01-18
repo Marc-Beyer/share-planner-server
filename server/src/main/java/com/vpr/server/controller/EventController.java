@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -103,43 +104,50 @@ public class EventController {
     public @ResponseBody
     ResponseEntity<String> delEvent(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam Integer eventId
+            @RequestParam long eventId,
+            @RequestParam long userId,
+            @RequestParam String date
     ) {
+        System.out.println("authorizationHeader " + authorizationHeader);
         User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
-        if(authUser == null || authUser.isAdmin()){
+        if(authUser == null || (!authUser.isAdmin() && authUser.getId() != userId)){
             return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
         }
 
-        Optional<Event> event = eventRepository.findById(eventId);
+        EventRepository.UserEventInterface userEvent = eventRepository.findUserEventByEventIdUserIdAndDate(eventId, authUser.getId(), date);
 
-        if (event.isEmpty()){
+        //Optional<Event> event = eventRepository.findById(eventId);
+
+        if (userEvent == null){
             return new ResponseEntity<>( "Der Termin exestiert nicht", HttpStatus.BAD_REQUEST);
         }
+        return new ResponseEntity<>( "Der Termin exestiert", HttpStatus.OK);
 
-
-        eventRepository.deleteUserEventsById(Long.valueOf(eventId));
-        eventRepository.deleteById(Long.valueOf(eventId));
+/*
+        eventRepository.deleteUserEventsById(eventId);
+        eventRepository.deleteById(eventId);
         return new ResponseEntity<>("", HttpStatus.OK);
+ */
     }
 
     @PostMapping(path = "/all")
     public @ResponseBody
-    Object[] getAllEvents(@RequestParam long userId) {
-        return eventRepository.findAllVisibleByUserId(userId);
+    List<Event> getAllEvents(
+            @RequestParam long userId,
+            @RequestParam String startDate,
+            @RequestParam String endDate
+    ) {
+        return eventRepository.findEventsInDateRange(userId, startDate, endDate);
     }
 
     @PostMapping(path = "/edit")
     public @ResponseBody
     String editEvent(
-            @RequestParam Integer userId,
-            @RequestParam String date,
-            @RequestParam String name,
-            @RequestParam String start,
-            @RequestParam String end,
-            @RequestParam Integer prority,
-            @RequestParam Boolean isFullDay,
-            @RequestParam Boolean isPrivate
+            @RequestParam Long eventId,
+            @RequestParam Long userId,
+            @RequestParam String date
     ) {
-        return "";
+        EventRepository.UserEventInterface userEvent = eventRepository.findUserEventByEventIdUserIdAndDate(eventId, userId, date);
+        return "Length: " + userEvent.getDate();
     }
 }
