@@ -20,8 +20,8 @@ public class JSONMapper {
                         "\"id\": " + event.getId() + "," +
                         "\"name\": \"" + event.getName() + "\"," +
                         "\"priority\": " + event.getPriority() + "," +
-                        "\"isFullDay\": " + event.isFullDay() + "," +
-                        "\"isPrivate\": " + event.isPrivate() + "," +
+                        "\"fullDay\": " + event.isFullDay() + "," +
+                        "\"private\": " + event.isPrivate() + "," +
                         "\"start\": " + ToJSON(event.getStart()) + "," +
                         "\"end\": " + ToJSON(event.getEnd()) +
                     "}";
