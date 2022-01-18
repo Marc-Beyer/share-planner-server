@@ -56,7 +56,7 @@ public interface EventRepository extends CrudRepository<Event, Integer> {
     )
     UserEventInterface findUserEventByEventIdUserIdAndDate(long eventId, long userId, String date);
 
-    public interface UserEventInterface{
+    interface UserEventInterface{
         long getEventId();
         long getUserId();
         long getDate();
@@ -79,9 +79,6 @@ public interface EventRepository extends CrudRepository<Event, Integer> {
     )
     void deleteById(long id);
 
-
-    @Query(nativeQuery = true)
-    List<Event> findEventsInDateRange(Long userId, String startDate, String endDate);
-
-
+    //@Query(nativeQuery = true)
+    //List<Event> findEventsInDateRange(Long userId, String startDate, String endDate);
 }

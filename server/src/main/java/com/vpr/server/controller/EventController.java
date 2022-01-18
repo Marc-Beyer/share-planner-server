@@ -3,6 +3,8 @@ package com.vpr.server.controller;
 import com.vpr.server.data.Event;
 import com.vpr.server.data.User;
 import com.vpr.server.data.UserEvent;
+import com.vpr.server.dao.interfaces.EventDAO;
+import com.vpr.server.json.EventJSONMapper;
 import com.vpr.server.repository.EventRepository;
 import com.vpr.server.repository.UserEventRepository;
 import com.vpr.server.repository.UserRepository;
@@ -11,12 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping(path = "/event")
@@ -27,6 +27,9 @@ public class EventController {
     private EventRepository eventRepository;
     @Autowired
     private UserEventRepository userEventRepository;
+
+    @Autowired
+    private EventDAO eventDAO;
 
     /******************
      * POST-ENDPOINTS *
@@ -130,6 +133,7 @@ public class EventController {
  */
     }
 
+    /*
     @PostMapping(path = "/all")
     public @ResponseBody
     List<Event> getAllEvents(
@@ -139,6 +143,7 @@ public class EventController {
     ) {
         return eventRepository.findEventsInDateRange(userId, startDate, endDate);
     }
+     */
 
     @PostMapping(path = "/edit")
     public @ResponseBody
@@ -147,7 +152,11 @@ public class EventController {
             @RequestParam Long userId,
             @RequestParam String date
     ) {
-        EventRepository.UserEventInterface userEvent = eventRepository.findUserEventByEventIdUserIdAndDate(eventId, userId, date);
-        return "Length: " + userEvent.getDate();
+        //EventRepository.UserEventInterface userEvent = eventRepository.findUserEventByEventIdUserIdAndDate(eventId, userId, date);
+        //List<Event> userEvent = eventRepository.findByNativeQuery();
+        List<Event> eventList = eventDAO.getAllEvents();
+
+        return EventJSONMapper.ToJSON(eventList);
     }
+
 }

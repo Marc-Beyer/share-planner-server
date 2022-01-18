@@ -1,10 +1,12 @@
 package com.vpr.server.data;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Time;
 import java.util.List;
 
-@NamedNativeQuery(name = "Event.findEventsInDateRange",
+/*
+@NamedNativeQuery(name = "findEventsInDateRange",
     query = "SELECT e.id as id, e.name as name, e.priority as priority, e.is_full_day as isFullDay, " +
             "is_private as isPrivate, e.start as start, e.end as end " +
             "FROM event e " +
@@ -28,8 +30,17 @@ import java.util.List;
         }
     )
 )
+*/
 @Entity(name = "Event") // @Entity creates a table out of this class with Hibernate
-public class Event {
+@Table(name = "event")
+@NamedNativeQueries({
+    @NamedNativeQuery(
+        name = "getAllEvents",
+        query = "SELECT * FROM event",
+        resultClass = Event.class
+    )
+})
+public class Event implements Serializable {
     // Generate the primary key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
