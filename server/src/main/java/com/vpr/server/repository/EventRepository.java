@@ -65,10 +65,10 @@ public interface EventRepository extends CrudRepository<Event, Integer> {
     @Modifying
     @Transactional
     @Query(
-            value = "DELETE ue FROM user_event ue WHERE ue.event_id = ?1",
+            value = "DELETE ue FROM user_event ue WHERE ue.event_id = :eventId AND ue.user_id = :userId AND ue.date = :date",
             nativeQuery = true
     )
-    void deleteUserEventsById(long id);
+    void deleteUserEventsById(long userId, long eventId, String date);
 
 
     @Modifying

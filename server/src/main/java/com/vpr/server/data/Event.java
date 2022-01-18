@@ -38,6 +38,37 @@ import java.util.List;
         name = "getAllEvents",
         query = "SELECT * FROM event",
         resultClass = Event.class
+    ),
+    @NamedNativeQuery(
+            name = "getAllEventsInTimespan",
+            query = "SELECT * " +
+                    "FROM event e " +
+                    "INNER JOIN user_event ue " +
+                    "ON e.id = ue.event_id " +
+                    "WHERE (ue.user_id = :userId OR e.is_private = 0) " +
+                    "AND ue.date > :startDate " +
+                    "AND ue.date < :endDate",
+            resultClass = Event.class
+    ),
+    @NamedNativeQuery(
+            name = "getAllEventsWithIdAndDate",
+            query = "SELECT * " +
+                    "FROM event e " +
+                    "INNER JOIN user_event ue " +
+                    "ON e.id = ue.event_id " +
+                    "WHERE ue.user_id = :userId " +
+                    "AND ue.event_id = :eventId " +
+                    "AND ue.date = :date",
+            resultClass = Event.class
+    ),
+    @NamedNativeQuery(
+            name = "getAllEventsWithId",
+            query = "SELECT * " +
+                    "FROM event e " +
+                    "INNER JOIN user_event ue " +
+                    "ON e.id = ue.event_id " +
+                    "WHERE ue.event_id = :eventId",
+            resultClass = Event.class
     )
 })
 public class Event implements Serializable {

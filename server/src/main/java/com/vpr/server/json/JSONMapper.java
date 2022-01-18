@@ -7,25 +7,23 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EventJSONMapper {
+public class JSONMapper {
     public static List<String> ToJSON(Event event){
         List<String> eventListJSON = new ArrayList<>();
 
         for (UserEvent userEvent : event.getUserEvent()) {
 
             String eventJSON = "{" +
-                    "\"ownerId\": " +
-                    userEvent.getUser().getId() +
-                    ", \"ownerId\": \"" +
-                    userEvent.getUser().getName() +
-                    ", \"date\": \"" +
-                    userEvent.getDate() +
-                    "\", " +
-                    "\"id\": " + event.getId() + "," +
-                    "\"name\": \"" + event.getName() + "\"," +
-                    "\"priority\": " + event.getPriority() + "," +
-                    "\"start\": " + ToJSON(event.getStart()) + "," +
-                    "\"end\": " + ToJSON(event.getEnd()) +
+                        "\"ownerId\": " + userEvent.getUser().getId() + ", " +
+                        "\"ownerName\": \"" + userEvent.getUser().getForename() + " " + userEvent.getUser().getName() + "\", " +
+                        "\"date\": \"" + userEvent.getDate() + "\", " +
+                        "\"id\": " + event.getId() + "," +
+                        "\"name\": \"" + event.getName() + "\"," +
+                        "\"priority\": " + event.getPriority() + "," +
+                        "\"isFullDay\": " + event.isFullDay() + "," +
+                        "\"isPrivate\": " + event.isPrivate() + "," +
+                        "\"start\": " + ToJSON(event.getStart()) + "," +
+                        "\"end\": " + ToJSON(event.getEnd()) +
                     "}";
 
             eventListJSON.add(eventJSON);

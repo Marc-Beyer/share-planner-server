@@ -4,7 +4,8 @@ import com.vpr.server.data.Event;
 import com.vpr.server.data.User;
 import com.vpr.server.data.UserEvent;
 import com.vpr.server.dao.interfaces.EventDAO;
-import com.vpr.server.json.EventJSONMapper;
+import com.vpr.server.json.JSONMapper;
+import com.vpr.server.json.Validator;
 import com.vpr.server.repository.EventRepository;
 import com.vpr.server.repository.UserEventRepository;
 import com.vpr.server.repository.UserRepository;
@@ -38,68 +39,24 @@ public class EventController {
     @PostMapping(path = "/add")
     public @ResponseBody
     ResponseEntity<String> addEvent(
-            @RequestParam Integer userId,
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam long userId,
             @RequestParam String date,
             @RequestParam String name,
             @RequestParam String start,
             @RequestParam String end,
-            @RequestParam Integer prority,
+            @RequestParam Integer priority,
             @RequestParam Boolean isFullDay,
             @RequestParam Boolean isPrivate
     ) {
-        String errorString = "";
-
-        Event event = new Event();
-
-        System.out.println(name.length() + ". name " + name);
-        if (name.length() > 3) {
-            event.setName(name);
-        } else {
-            System.out.println("NAME IST ZU KURZ");
-            return new ResponseEntity<>("Der Name ist zu kurz", HttpStatus.BAD_REQUEST);
+        User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
+        if (authUser == null || (!authUser.isAdmin() && authUser.getId() != userId)) {
+            return new ResponseEntity<>("Du hast keine Rechte um den Termin zu erstellen", HttpStatus.UNAUTHORIZED);
         }
 
-        try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm");
-            long ms = simpleDateFormat.parse(start).getTime();
-            event.setStart(new Time(ms));
-        } catch (Exception e) {
-            event.setStart(null);
-        }
+        ResponseEntity<String> BAD_REQUEST = createEventAndUserEvent(userId, date, name, start, end, priority, isFullDay, isPrivate);
+        if (BAD_REQUEST != null) return BAD_REQUEST;
 
-        try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm");
-            long ms = simpleDateFormat.parse(end).getTime();
-            event.setEnd(new Time(ms));
-        } catch (Exception e) {
-            event.setEnd(null);
-        }
-
-        event.setPriority(prority);
-        event.setFullDay(isFullDay);
-        event.setPrivate(isPrivate);
-
-        UserEvent userEvent = new UserEvent();
-
-        try {
-            System.out.println("date " + date);
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            userEvent.setDate(new java.sql.Date(simpleDateFormat.parse(date).getTime()));
-        } catch (Exception e) {
-            System.out.println("DATE FORMAT NOT CORRECT");
-            return new ResponseEntity<>("Datumformat nicht korrekt", HttpStatus.BAD_REQUEST);
-        }
-
-        userEvent.setEvent(event);
-        long uId = Long.valueOf(userId);
-        User user = userRepository.findById(uId);
-        userEvent.setUser(user);
-
-        System.out.println(userEvent);
-        System.out.println(user);
-
-        eventRepository.save(event);
-        userEventRepository.save(userEvent);
         return new ResponseEntity<>("", HttpStatus.OK);
     }
 
@@ -111,52 +68,105 @@ public class EventController {
             @RequestParam long userId,
             @RequestParam String date
     ) {
-        System.out.println("authorizationHeader " + authorizationHeader);
         User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
-        if(authUser == null || (!authUser.isAdmin() && authUser.getId() != userId)){
-            return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
+        if (authUser == null || (!authUser.isAdmin() && authUser.getId() != userId)) {
+            return new ResponseEntity<>("Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
         }
 
-        EventRepository.UserEventInterface userEvent = eventRepository.findUserEventByEventIdUserIdAndDate(eventId, authUser.getId(), date);
-
-        //Optional<Event> event = eventRepository.findById(eventId);
-
-        if (userEvent == null){
-            return new ResponseEntity<>( "Der Termin exestiert nicht", HttpStatus.BAD_REQUEST);
+        eventRepository.deleteUserEventsById(userId, eventId, date);
+        if(eventDAO.getAllEventsWithId(eventId).size() == 0){
+            eventRepository.deleteById(eventId);
         }
-        return new ResponseEntity<>( "Der Termin exestiert", HttpStatus.OK);
 
-/*
-        eventRepository.deleteUserEventsById(eventId);
-        eventRepository.deleteById(eventId);
         return new ResponseEntity<>("", HttpStatus.OK);
- */
     }
 
-    /*
+
     @PostMapping(path = "/all")
     public @ResponseBody
-    List<Event> getAllEvents(
-            @RequestParam long userId,
+    ResponseEntity<String> getAllEvents(
+            @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam String startDate,
             @RequestParam String endDate
     ) {
-        return eventRepository.findEventsInDateRange(userId, startDate, endDate);
+        User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
+        if (authUser == null) {
+            return new ResponseEntity<>("Bitte erneut einloggen", HttpStatus.UNAUTHORIZED);
+        }
+
+        List<Event> eventList = eventDAO.getAllEventsInTimespan(authUser.getId(), startDate, endDate);
+
+        return new ResponseEntity<>(JSONMapper.ToJSON(eventList), HttpStatus.OK);
     }
-     */
+
 
     @PostMapping(path = "/edit")
     public @ResponseBody
-    String editEvent(
+    ResponseEntity<String> editEvent(
+            @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam Long eventId,
             @RequestParam Long userId,
-            @RequestParam String date
+            @RequestParam String date,
+            @RequestParam String newDate,
+            @RequestParam String newName,
+            @RequestParam String newStart,
+            @RequestParam String newEnd,
+            @RequestParam Integer newPriority,
+            @RequestParam Boolean newIsFullDay,
+            @RequestParam Boolean newIsPrivate
     ) {
-        //EventRepository.UserEventInterface userEvent = eventRepository.findUserEventByEventIdUserIdAndDate(eventId, userId, date);
-        //List<Event> userEvent = eventRepository.findByNativeQuery();
-        List<Event> eventList = eventDAO.getAllEvents();
+        User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
+        if (authUser == null || (!authUser.isAdmin() && authUser.getId() != userId)) {
+            return new ResponseEntity<>("Du hast keine Rechte um den Termin zu bearbeiten", HttpStatus.UNAUTHORIZED);
+        }
 
-        return EventJSONMapper.ToJSON(eventList);
+        List<Event> eventList = eventDAO.getAllEventsWithIdAndDate(userId, eventId, date);
+
+        if (eventList == null || eventList.size() == 0) {
+            return new ResponseEntity<>("Der Termin exestiert nicht in der Datenbank", HttpStatus.BAD_REQUEST);
+        }
+        if (eventList.size() > 1) {
+            return new ResponseEntity<>("Drr Termin ist doppelt vorhanden. (Um das zu lösen versuche den Termin zu löschen und erneut zu erstellen)", HttpStatus.BAD_REQUEST);
+        }
+
+        eventRepository.deleteUserEventsById(userId, eventId, date);
+        if(eventDAO.getAllEventsWithId(eventId).size() == 0){
+            eventRepository.deleteById(eventId);
+        }
+
+        ResponseEntity<String> BAD_REQUEST = createEventAndUserEvent(userId, newDate, newName, newStart, newEnd, newPriority, newIsFullDay, newIsPrivate);
+        if (BAD_REQUEST != null) return BAD_REQUEST;
+
+        return new ResponseEntity<>("", HttpStatus.OK);
     }
 
+    private ResponseEntity<String> createEventAndUserEvent(long userId, String date, String name, String start, String end, Integer priority, Boolean isFullDay, Boolean isPrivate) {
+        User user = userRepository.findById(userId);
+        if(user == null){
+            return new ResponseEntity<>("UserId nicht korrekt", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            Event event = new Event();
+
+            event.setName(Validator.ValidateEventName(name));
+            event.setStart(Validator.ValidateEventTime(start));
+            event.setEnd(Validator.ValidateEventTime(end));
+            event.setPriority(priority);
+            event.setFullDay(isFullDay);
+            event.setPrivate(isPrivate);
+
+            UserEvent userEvent = new UserEvent();
+
+            userEvent.setDate(Validator.ValidateEventDate(date));
+            userEvent.setEvent(event);
+            userEvent.setUser(user);
+
+            eventRepository.save(event);
+            userEventRepository.save(userEvent);
+        }catch (IllegalArgumentException exception){
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        return null;
+    }
 }
