@@ -5,32 +5,6 @@ import java.io.Serializable;
 import java.sql.Time;
 import java.util.List;
 
-/*
-@NamedNativeQuery(name = "findEventsInDateRange",
-    query = "SELECT e.id as id, e.name as name, e.priority as priority, e.is_full_day as isFullDay, " +
-            "is_private as isPrivate, e.start as start, e.end as end " +
-            "FROM event e " +
-            "INNER JOIN user_event ue " +
-            "ON e.id = ue.event_id " +
-            "WHERE (ue.user_id = :userId OR e.is_private = 0) " +
-            "AND ue.date > :startDate " +
-            "AND ue.date < :endDate",
-    resultSetMapping = "Mapping.Event"
-)
-@SqlResultSetMapping(name = "Mapping.Event",
-    classes = @ConstructorResult(targetClass = Event.class,
-        columns = {
-            @ColumnResult(name = "id"),
-            @ColumnResult(name = "name"),
-            @ColumnResult(name = "priority"),
-            @ColumnResult(name = "isFullDay"),
-            @ColumnResult(name = "isPrivate"),
-            @ColumnResult(name = "start"),
-            @ColumnResult(name = "end")
-        }
-    )
-)
-*/
 @Entity(name = "Event") // @Entity creates a table out of this class with Hibernate
 @Table(name = "event")
 @NamedNativeQueries({
@@ -47,7 +21,8 @@ import java.util.List;
                     "ON e.id = ue.event_id " +
                     "WHERE (ue.user_id = :userId OR e.is_private = 0) " +
                     "AND ue.date > :startDate " +
-                    "AND ue.date < :endDate",
+                    "AND ue.date < :endDate " +
+                    "ORDER BY ue.date, e.priority DESC, e.start",
             resultClass = Event.class
     ),
     @NamedNativeQuery(
