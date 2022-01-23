@@ -20,7 +20,7 @@ import java.util.List;
                     "INNER JOIN user_event ue " +
                     "ON e.id = ue.event_id " +
                     "WHERE (ue.user_id = :userId OR e.is_private = 0) " +
-                    "AND ue.date > :startDate " +
+                    "AND ue.date >= :startDate " +
                     "AND ue.date < :endDate " +
                     "ORDER BY ue.date, e.priority DESC, e.start",
             resultClass = Event.class

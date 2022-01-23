@@ -21,6 +21,12 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    private AuthController authController;
+
+    public UserController() {
+        this.authController = new AuthController();
+    }
+
     /******************
      * POST-ENDPOINTS *
      ******************/
@@ -35,9 +41,9 @@ public class UserController {
             @RequestParam String password,
             @RequestParam Boolean isAdmin
     ) {
-        User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
-        if(authUser == null || authUser.isAdmin()){
-            return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
+        User authUser = authController.getAuthUserFromHeader(authorizationHeader, userRepository);
+        if(authUser == null || !authUser.isAdmin()){
+            return new ResponseEntity<>( "Du hast keine Rechte um einen User an zu legen", HttpStatus.UNAUTHORIZED);
         }
 
         if(userRepository.findByLogin(login) != null){
@@ -106,16 +112,31 @@ public class UserController {
         return new ResponseEntity<>( "Falscher login", HttpStatus.UNAUTHORIZED);
     }
 
+    @PostMapping(path = "/login-with-token")
+    public @ResponseBody ResponseEntity<String> loginWithToken(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam long userId
+    ){
+        User authUser = authController.getAuthUserFromHeader(authorizationHeader, userRepository);
+        if(authUser == null || authUser.getId() != userId){
+            return new ResponseEntity<>( "Falscher auth-token", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>("", HttpStatus.OK);
+    }
+
     @PostMapping(path = "/del")
     public @ResponseBody ResponseEntity<String> deleteUser(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam Integer userId
+            @RequestParam long userId
     ) {
-        User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
-        if(authUser == null || authUser.isAdmin()){
+        User authUser = authController.getAuthUserFromHeader(authorizationHeader, userRepository);
+        if(authUser == null || !authUser.isAdmin()){
             return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
         }
-        userRepository.deleteById(Long.valueOf(userId));
+        User user = userRepository.findById(userId);
+        if(user == null){
+            return new ResponseEntity<>( "User nicht in der Datenbank vorhanden", HttpStatus.BAD_REQUEST);
+        }
         return new ResponseEntity<>( "", HttpStatus.OK);
     }
 
