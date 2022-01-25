@@ -1,6 +1,9 @@
 package com.vpr.server.controller;
 
+import com.vpr.server.dao.interfaces.UserDAO;
+import com.vpr.server.data.Event;
 import com.vpr.server.data.User;
+import com.vpr.server.json.JSONMapper;
 import com.vpr.server.repository.UserRepository;
 import com.vpr.server.security.Hasher;
 import com.vpr.server.security.Token;
@@ -9,19 +12,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+import java.util.List;
 
 @Controller
 @RequestMapping(path = "/user")
 public class UserController {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserDAO userDAO;
 
-    private AuthController authController;
+    private final AuthController authController;
 
     public UserController() {
         this.authController = new AuthController();
@@ -146,7 +151,9 @@ public class UserController {
 
     @GetMapping(path = "/all")
     public @ResponseBody
-    Object[] getAllUsers() {
-        return userRepository.findAllUsernames();
+    ResponseEntity<String> getAllUser() {
+        List<User> userList = userDAO.getAllUser();
+
+        return new ResponseEntity<>(JSONMapper.userListToJSON(userList), HttpStatus.OK);
     }
 }

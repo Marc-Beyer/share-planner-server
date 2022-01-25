@@ -78,7 +78,4 @@ public interface EventRepository extends CrudRepository<Event, Integer> {
             nativeQuery = true
     )
     void deleteById(long id);
-
-    //@Query(nativeQuery = true)
-    //List<Event> findEventsInDateRange(Long userId, String startDate, String endDate);
 }

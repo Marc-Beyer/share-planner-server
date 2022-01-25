@@ -4,7 +4,15 @@ import javax.persistence.*;
 import java.util.List;
 
 // @Entity creates a table out of this class with Hibernate
-@Entity
+@Entity(name = "User")
+@Table(name = "user")
+@NamedNativeQueries({
+        @NamedNativeQuery(
+                name = "getAllUser",
+                query = "SELECT * FROM user",
+                resultClass = User.class
+        )
+})
 public class User {
     // Generate the primary key
     @Id

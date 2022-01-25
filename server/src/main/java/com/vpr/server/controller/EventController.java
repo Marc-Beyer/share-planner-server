@@ -15,8 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Time;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 @Controller
@@ -96,7 +94,7 @@ public class EventController {
 
         List<Event> eventList = eventDAO.getAllEventsInTimespan(authUser.getId(), startDate, endDate);
 
-        return new ResponseEntity<>(JSONMapper.ToJSON(eventList), HttpStatus.OK);
+        return new ResponseEntity<>(JSONMapper.eventListToJSON(eventList), HttpStatus.OK);
     }
 
 
