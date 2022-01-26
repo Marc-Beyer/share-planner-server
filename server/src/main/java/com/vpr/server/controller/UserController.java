@@ -145,11 +145,7 @@ public class UserController {
         return new ResponseEntity<>( "", HttpStatus.OK);
     }
 
-    /*****************
-     * GET-ENDPOINTS *
-     *****************/
-
-    @GetMapping(path = "/all")
+    @PostMapping(path = "/all")
     public @ResponseBody
     ResponseEntity<String> getAllUser() {
         List<User> userList = userDAO.getAllUser();
