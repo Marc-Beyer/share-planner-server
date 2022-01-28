@@ -47,12 +47,12 @@ public class UserController {
             @RequestParam Boolean isAdmin
     ) {
         User authUser = authController.getAuthUserFromHeader(authorizationHeader, userRepository);
-        if(authUser == null || !authUser.isAdmin()){
-            return new ResponseEntity<>( "Du hast keine Rechte um einen User an zu legen", HttpStatus.UNAUTHORIZED);
+        if (authUser == null || !authUser.isAdmin()) {
+            return new ResponseEntity<>("Du hast keine Rechte um einen User an zu legen", HttpStatus.UNAUTHORIZED);
         }
 
-        if(userRepository.findByLogin(login) != null){
-            return new ResponseEntity<>( "Login exestiert bereits", HttpStatus.BAD_REQUEST);
+        if (userRepository.findByLogin(login) != null) {
+            return new ResponseEntity<>("Login exestiert bereits", HttpStatus.BAD_REQUEST);
         }
 
         byte[] salt = Hasher.GenerateSalt();
@@ -61,7 +61,7 @@ public class UserController {
             hash = Hasher.HashPassword(password, salt);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
-            return new ResponseEntity<>( "Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         User user = new User();
@@ -75,7 +75,7 @@ public class UserController {
         user.setAdmin(isAdmin);
 
         userRepository.save(user);
-        return new ResponseEntity<>( "" + user.getId(), HttpStatus.OK);
+        return new ResponseEntity<>("" + user.getId(), HttpStatus.OK);
     }
 
     @PostMapping(path = "/login")
@@ -88,7 +88,7 @@ public class UserController {
         User user = userRepository.findByLogin(login);
         if (user == null) {
             System.out.println("Login for " + login + " failed.");
-            return new ResponseEntity<>( "Falscher login", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Falscher login", HttpStatus.UNAUTHORIZED);
         }
 
         byte[] salt = user.getSalt();
@@ -97,7 +97,7 @@ public class UserController {
             hash = Hasher.HashPassword(password, salt);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
-            return new ResponseEntity<>( "Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if (Arrays.equals(user.getPassword(), hash)) {
@@ -108,41 +108,89 @@ public class UserController {
             System.out.println(user.getLogin() + " is now logged in.");
             System.out.println(Token.Verify(Token.Generate(user.getLogin()), user.getLogin()));
 
-            return new ResponseEntity<>( token + " " + user.getId(), HttpStatus.OK);
+            return new ResponseEntity<>(token + " " + user.getId(), HttpStatus.OK);
         }
         System.out.println(user.getLogin() + " failed to logged in.");
         System.out.println("entered : " + javax.xml.bind.DatatypeConverter.printHexBinary(hash));
         System.out.println("required: " + javax.xml.bind.DatatypeConverter.printHexBinary(user.getPassword()));
 
-        return new ResponseEntity<>( "Falscher login", HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>("Falscher login", HttpStatus.UNAUTHORIZED);
     }
 
     @PostMapping(path = "/login-with-token")
-    public @ResponseBody ResponseEntity<String> loginWithToken(
+    public @ResponseBody
+    ResponseEntity<String> loginWithToken(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam long userId
-    ){
+    ) {
         User authUser = authController.getAuthUserFromHeader(authorizationHeader, userRepository);
-        if(authUser == null || authUser.getId() != userId){
-            return new ResponseEntity<>( "Falscher auth-token", HttpStatus.UNAUTHORIZED);
+        if (authUser == null || authUser.getId() != userId) {
+            return new ResponseEntity<>("Falscher auth-token", HttpStatus.UNAUTHORIZED);
         }
         return new ResponseEntity<>("", HttpStatus.OK);
     }
 
     @PostMapping(path = "/del")
-    public @ResponseBody ResponseEntity<String> deleteUser(
+    public @ResponseBody
+    ResponseEntity<String> deleteUser(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam long userId
     ) {
         User authUser = authController.getAuthUserFromHeader(authorizationHeader, userRepository);
-        if(authUser == null || !authUser.isAdmin()){
-            return new ResponseEntity<>( "Du hast keine Rechte um den Termin zu löschen", HttpStatus.UNAUTHORIZED);
+        if (authUser == null || !authUser.isAdmin()) {
+            return new ResponseEntity<>("Du hast keine Rechte um den User zu löschen", HttpStatus.UNAUTHORIZED);
         }
         User user = userRepository.findById(userId);
-        if(user == null){
-            return new ResponseEntity<>( "User nicht in der Datenbank vorhanden", HttpStatus.BAD_REQUEST);
+        if (user == null) {
+            return new ResponseEntity<>("User nicht in der Datenbank vorhanden", HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>( "", HttpStatus.OK);
+        userRepository.delete(user);
+        return new ResponseEntity<>("", HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/edit")
+    public @ResponseBody ResponseEntity<String> editUser(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam long userId,
+            @RequestParam String name,
+            @RequestParam String forename,
+            @RequestParam String login,
+            @RequestParam String password,
+            @RequestParam Boolean isAdmin
+    ) {
+        User authUser = authController.getAuthUserFromHeader(authorizationHeader, userRepository);
+        if (authUser == null || (!authUser.isAdmin() && authUser.getId() != userId)) {
+            return new ResponseEntity<>("Du hast keine Rechte um den User zu editieren", HttpStatus.UNAUTHORIZED);
+        }
+        User user = userRepository.findById(userId);
+        if (user == null) {
+            return new ResponseEntity<>("User nicht in der Datenbank vorhanden", HttpStatus.BAD_REQUEST);
+        }
+
+        User userWithLogin = userRepository.findByLogin(login);
+        if (userWithLogin != null && userWithLogin.getId() != userId) {
+            return new ResponseEntity<>("Login exestiert bereits", HttpStatus.BAD_REQUEST);
+        }
+
+        byte[] salt = Hasher.GenerateSalt();
+        byte[] hash;
+        try {
+            hash = Hasher.HashPassword(password, salt);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        user.setName(name);
+        user.setForename(forename);
+        user.setLogin(login);
+        user.setPassword(hash);
+        user.setSalt(salt);
+        user.setToken("");
+        user.setAdmin(isAdmin);
+
+        userRepository.save(user);
+        return new ResponseEntity<>("", HttpStatus.OK);
     }
 
     @PostMapping(path = "/all")

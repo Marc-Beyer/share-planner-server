@@ -17,7 +17,7 @@ public class JSONMapper {
                 "\"forename\": \"" + user.getForename() + "\", " +
                 "\"name\": \"" + user.getName() + "\", " +
                 "\"login\": \"" + user.getLogin() + "\"," +
-                "\"isAdmin\": " + user.isAdmin() +
+                "\"admin\": " + user.isAdmin() +
                 "}";
     }
 
