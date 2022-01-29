@@ -6,12 +6,22 @@ import java.util.List;
 // @Entity creates a table out of this class with Hibernate
 @Entity(name = "User")
 @Table(name = "user")
+
+@SqlResultSetMapping(name="deleteResult", columns = {
+        @ColumnResult(name = "count")
+})
+
 @NamedNativeQueries({
-        @NamedNativeQuery(
-                name = "getAllUser",
-                query = "SELECT * FROM user",
-                resultClass = User.class
-        )
+    @NamedNativeQuery(
+        name = "getAllUser",
+        query = "SELECT * FROM user",
+        resultClass = User.class
+    ),
+    @NamedNativeQuery(
+        name = "deleteAllUserEvents",
+        query = "DELETE FROM user_event WHERE user_id = :userId",
+            resultSetMapping = "deleteResult"
+    )
 })
 public class User {
     // Generate the primary key

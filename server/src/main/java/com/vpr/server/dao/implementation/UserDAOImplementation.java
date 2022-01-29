@@ -21,4 +21,17 @@ public class UserDAOImplementation implements UserDAO {
     public List<User> getAllUser() {
         return manager.createNamedQuery("getAllUser", User.class).getResultList();
     }
+
+    @Override
+    public boolean deleteAllUserEvents(long userId) {
+        try {
+            manager.createNamedQuery("deleteAllUserEvents", User.class)
+                    .setParameter("userId", userId)
+                    .executeUpdate();
+
+            return true;
+        }catch (Exception e){
+            return false;
+        }
+    }
 }

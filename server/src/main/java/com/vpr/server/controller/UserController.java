@@ -144,6 +144,9 @@ public class UserController {
         if (user == null) {
             return new ResponseEntity<>("User nicht in der Datenbank vorhanden", HttpStatus.BAD_REQUEST);
         }
+        if(userDAO.deleteAllUserEvents(user.getId())){
+            return new ResponseEntity<>("User konnte nicht gelöscht werden", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         userRepository.delete(user);
         return new ResponseEntity<>("", HttpStatus.OK);
     }
