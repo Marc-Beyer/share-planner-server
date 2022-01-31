@@ -160,6 +160,22 @@ public class EventController {
             userEvent.setEvent(event);
             userEvent.setUser(user);
 
+            List<UserEvent> userEvents = userEventRepository.findByUserIdAndDate(user.getId(), userEvent.getDate());
+            System.out.println(userEvents.size() + "");
+            if(event.isFullDay() && userEvents.size() > 0){
+                return new ResponseEntity<>("Es gibt bereits Termine am " + userEvent.getDate(), HttpStatus.BAD_REQUEST);
+            }else{
+                for(UserEvent ue : userEvents){
+                    if(ue.getEvent().isFullDay()){
+                        return new ResponseEntity<>(
+                                "Der Tag " + userEvent.getDate() + " ist schon mit '"
+                                        + ue.getEvent().getName() + "' belegt",
+                                HttpStatus.BAD_REQUEST
+                        );
+                    }
+                }
+            }
+
             eventRepository.save(event);
             userEventRepository.save(userEvent);
         }catch (IllegalArgumentException exception){
