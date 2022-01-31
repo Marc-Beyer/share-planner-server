@@ -158,12 +158,15 @@ public class UserController {
             @RequestParam String name,
             @RequestParam String forename,
             @RequestParam String login,
-            @RequestParam String password,
+            @RequestParam(required = false) String password,
             @RequestParam Boolean isAdmin
     ) {
         User authUser = authController.getAuthUserFromHeader(authorizationHeader, userRepository);
         if (authUser == null || (!authUser.isAdmin() && authUser.getId() != userId)) {
             return new ResponseEntity<>("Du hast keine Rechte um den User zu editieren", HttpStatus.UNAUTHORIZED);
+        }
+        if(isAdmin && !authUser.isAdmin()){
+            return new ResponseEntity<>("Du hast keine Rechte um dich zum Admin zu machen", HttpStatus.UNAUTHORIZED);
         }
         User user = userRepository.findById(userId);
         if (user == null) {
@@ -175,20 +178,22 @@ public class UserController {
             return new ResponseEntity<>("Login exestiert bereits", HttpStatus.BAD_REQUEST);
         }
 
-        byte[] salt = Hasher.GenerateSalt();
-        byte[] hash;
-        try {
-            hash = Hasher.HashPassword(password, salt);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
+        if(password != null){
+            byte[] salt = Hasher.GenerateSalt();
+            byte[] hash;
+            try {
+                hash = Hasher.HashPassword(password, salt);
+                user.setPassword(hash);
+                user.setSalt(salt);
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                e.printStackTrace();
+                return new ResponseEntity<>("Fehler beim hashen", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
 
         user.setName(name);
         user.setForename(forename);
         user.setLogin(login);
-        user.setPassword(hash);
-        user.setSalt(salt);
         user.setToken("");
         user.setAdmin(isAdmin);
 
