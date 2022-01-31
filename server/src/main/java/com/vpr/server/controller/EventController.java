@@ -127,13 +127,14 @@ public class EventController {
             return new ResponseEntity<>("Drr Termin ist doppelt vorhanden. (Um das zu lösen versuche den Termin zu löschen und erneut zu erstellen)", HttpStatus.BAD_REQUEST);
         }
 
+        ResponseEntity<String> error = createEventAndUserEvent(userId, newDate, newName, newStart, newEnd, newPriority, newIsFullDay, newIsPrivate);
+        if (error != null) return error;
+
         eventRepository.deleteUserEventsById(userId, eventId, date);
         if(eventDAO.getAllEventsWithId(eventId).size() == 0){
             eventRepository.deleteById(eventId);
         }
 
-        ResponseEntity<String> BAD_REQUEST = createEventAndUserEvent(userId, newDate, newName, newStart, newEnd, newPriority, newIsFullDay, newIsPrivate);
-        if (BAD_REQUEST != null) return BAD_REQUEST;
 
         return new ResponseEntity<>("", HttpStatus.OK);
     }
