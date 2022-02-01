@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @Controller
@@ -72,7 +73,7 @@ public class EventController {
         }
 
         eventRepository.deleteUserEventsById(userId, eventId, date);
-        if(eventDAO.getAllEventsWithId(eventId).size() == 0){
+        if (eventDAO.getAllEventsWithId(eventId).size() == 0) {
             eventRepository.deleteById(eventId);
         }
 
@@ -115,7 +116,10 @@ public class EventController {
     ) {
         User authUser = userRepository.findByToken(authorizationHeader.split("\\s")[1]);
         if (authUser == null || (!authUser.isAdmin() && authUser.getId() != userId)) {
-            return new ResponseEntity<>("Du hast keine Rechte um den Termin zu bearbeiten", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    "Du hast keine Rechte um den Termin zu bearbeiten",
+                    HttpStatus.UNAUTHORIZED
+            );
         }
 
         List<Event> eventList = eventDAO.getAllEventsWithIdAndDate(userId, eventId, date);
@@ -124,14 +128,29 @@ public class EventController {
             return new ResponseEntity<>("Der Termin exestiert nicht in der Datenbank", HttpStatus.BAD_REQUEST);
         }
         if (eventList.size() > 1) {
-            return new ResponseEntity<>("Drr Termin ist doppelt vorhanden. (Um das zu lösen versuche den Termin zu löschen und erneut zu erstellen)", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    "Der Termin ist doppelt vorhanden. " +
+                            "(Um das zu lösen versuche den Termin zu löschen und erneut zu erstellen)",
+                    HttpStatus.BAD_REQUEST
+            );
         }
 
-        ResponseEntity<String> error = createEventAndUserEvent(userId, newDate, newName, newStart, newEnd, newPriority, newIsFullDay, newIsPrivate);
+        ResponseEntity<String> error = createEventAndUserEvent(
+                userId,
+                newDate,
+                newName,
+                newStart,
+                newEnd,
+                newPriority,
+                newIsFullDay,
+                newIsPrivate,
+                eventId
+        );
+
         if (error != null) return error;
 
         eventRepository.deleteUserEventsById(userId, eventId, date);
-        if(eventDAO.getAllEventsWithId(eventId).size() == 0){
+        if (eventDAO.getAllEventsWithId(eventId).size() == 0) {
             eventRepository.deleteById(eventId);
         }
 
@@ -139,9 +158,42 @@ public class EventController {
         return new ResponseEntity<>("", HttpStatus.OK);
     }
 
-    private ResponseEntity<String> createEventAndUserEvent(long userId, String date, String name, String start, String end, Integer priority, Boolean isFullDay, Boolean isPrivate) {
+    private ResponseEntity<String> createEventAndUserEvent(
+            long userId,
+            String date,
+            String name,
+            String start,
+            String end,
+            Integer priority,
+            Boolean isFullDay,
+            Boolean isPrivate
+    ) {
+        return createEventAndUserEvent(
+                userId,
+                date,
+                name,
+                start,
+                end,
+                priority,
+                isFullDay,
+                isPrivate,
+                -1
+        );
+    }
+
+    private ResponseEntity<String> createEventAndUserEvent(
+            long userId,
+            String date,
+            String name,
+            String start,
+            String end,
+            Integer priority,
+            Boolean isFullDay,
+            Boolean isPrivate,
+            long oldEventId
+    ) {
         User user = userRepository.findById(userId);
-        if(user == null){
+        if (user == null) {
             return new ResponseEntity<>("UserId nicht korrekt", HttpStatus.BAD_REQUEST);
         }
 
@@ -162,15 +214,19 @@ public class EventController {
             userEvent.setUser(user);
 
             List<UserEvent> userEvents = userEventRepository.findByUserIdAndDate(user.getId(), userEvent.getDate());
-            System.out.println(userEvents.size() + "");
-            if(
-                (event.isFullDay() && userEvents.size() > 0) &&
-                !(userEvents.size() == 1 && userEvent.equals(userEvents.get(0)))
-            ){
-                return new ResponseEntity<>("Es gibt bereits Termine am " + userEvent.getDate(), HttpStatus.BAD_REQUEST);
-            }else{
-                for(UserEvent ue : userEvents){
-                    if(ue.getEvent().isFullDay()){
+
+            boolean isFullDayButDayHasEvents = event.isFullDay() && userEvents.size() > 0;
+            boolean userEventIsSelf = userEvents.size() == 1 &&
+                    isSelf(userEvent.getDate(), userId, oldEventId, userEvents.get(0));
+
+            if (isFullDayButDayHasEvents && !userEventIsSelf) {
+                return new ResponseEntity<>(
+                        "Es gibt bereits Termine am " + userEvent.getDate(),
+                        HttpStatus.BAD_REQUEST
+                );
+            } else {
+                for (UserEvent ue : userEvents) {
+                    if (ue.getEvent().isFullDay() && !isSelf(userEvent.getDate(), userId, oldEventId, ue)) {
                         return new ResponseEntity<>(
                                 "Der Tag " + userEvent.getDate() + " ist schon mit '"
                                         + ue.getEvent().getName() + "' belegt",
@@ -182,9 +238,15 @@ public class EventController {
 
             eventRepository.save(event);
             userEventRepository.save(userEvent);
-        }catch (IllegalArgumentException exception){
+        } catch (IllegalArgumentException exception) {
             return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
         }
         return null;
+    }
+
+    private boolean isSelf(Date date, long userId, long eventId, UserEvent userEvent){
+        return date.equals(userEvent.getDate()) &&
+                userId == userEvent.getUser().getId() &&
+                eventId == userEvent.getEvent().getId();
     }
 }

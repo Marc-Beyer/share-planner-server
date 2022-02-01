@@ -157,11 +157,12 @@ public class Event implements Serializable {
 
     @Override
     public boolean equals(Object obj){
-        if(obj.getClass() == Event.class){
+        if(!(obj instanceof Event)){
             return false;
         }
 
         Event event = (Event) obj;
+        System.out.println(event.getId() + " " + getId());
         return event.getId() == getId();
     }
 

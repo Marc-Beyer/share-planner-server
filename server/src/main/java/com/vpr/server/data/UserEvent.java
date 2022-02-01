@@ -64,11 +64,18 @@ public class UserEvent {
 
     @Override
     public boolean equals(Object obj){
-        if(obj.getClass() == UserEvent.class){
+        System.out.println("equals");
+        if(!(obj instanceof UserEvent)){
+            System.out.println("not an userevent");
             return false;
         }
 
         UserEvent userEvent = (UserEvent) obj;
+
+        System.out.println("date " + userEvent.getDate().equals(getDate()));
+        System.out.println("user " + userEvent.getUser().equals(getUser()));
+        System.out.println("event " + userEvent.getEvent().equals(getEvent()));
+
         return userEvent.getDate().equals(getDate()) &&
                 userEvent.getUser().equals(getUser()) &&
                 userEvent.getEvent().equals(getEvent());
