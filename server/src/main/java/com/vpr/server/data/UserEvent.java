@@ -2,6 +2,7 @@ package com.vpr.server.data;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.Calendar;
 
 // @Entity creates a table out of this class with Hibernate
 // @Table defines the table-name
@@ -60,4 +61,34 @@ public class UserEvent {
                 ", date=" + date +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object obj){
+        if(obj.getClass() == UserEvent.class){
+            return false;
+        }
+
+        UserEvent userEvent = (UserEvent) obj;
+        return userEvent.getDate().equals(getDate()) &&
+                userEvent.getUser().equals(getUser()) &&
+                userEvent.getEvent().equals(getEvent());
+    }
+
+    @Override
+    public int hashCode(){
+        long hash = getUser().hashCode() +
+                getEvent().hashCode() +
+                getDate().hashCode();
+
+        return (int)hash;
+    }
 }
+
+
+
+
+
+
+
+
+

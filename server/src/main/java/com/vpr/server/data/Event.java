@@ -154,4 +154,19 @@ public class Event implements Serializable {
                 ", userEvent=" + userEvent +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object obj){
+        if(obj.getClass() == Event.class){
+            return false;
+        }
+
+        Event event = (Event) obj;
+        return event.getId() == getId();
+    }
+
+    @Override
+    public int hashCode(){
+        return (int)getId();
+    }
 }

@@ -163,7 +163,10 @@ public class EventController {
 
             List<UserEvent> userEvents = userEventRepository.findByUserIdAndDate(user.getId(), userEvent.getDate());
             System.out.println(userEvents.size() + "");
-            if(event.isFullDay() && userEvents.size() > 0){
+            if(
+                (event.isFullDay() && userEvents.size() > 0) &&
+                !(userEvents.size() == 1 && userEvent.equals(userEvents.get(0)))
+            ){
                 return new ResponseEntity<>("Es gibt bereits Termine am " + userEvent.getDate(), HttpStatus.BAD_REQUEST);
             }else{
                 for(UserEvent ue : userEvents){

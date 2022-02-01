@@ -128,4 +128,19 @@ public class User {
     public void setEventList(List<UserEvent> userEvent) {
         this.userEvent = userEvent;
     }
+
+    @Override
+    public boolean equals(Object obj){
+        if(obj.getClass() == User.class){
+            return false;
+        }
+
+        User user = (User) obj;
+        return user.getId() == getId();
+    }
+
+    @Override
+    public int hashCode(){
+        return (int)getId();
+    }
 }
