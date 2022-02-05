@@ -28,4 +28,4 @@ spring.datasource.driver-class-name =com.mysql.jdbc.Driver
 #spring.jpa.show-sql: true
 ``` 
 
-You should now be able to start the application :D
+Now you should be able to start the application :D
